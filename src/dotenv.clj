@@ -42,7 +42,8 @@
          (into {}) )
     {}))
 
-(def base-env
+(defn base-env
+  []
   (into {} [
             (System/getenv)
             (System/getProperties)
@@ -53,19 +54,21 @@
 (def app-env
   (or
     (->> app-env-vars
-         (map #(base-env %))
+         (map #((base-env) %))
          (filter some?)
          (first))
     "development"))
 
 (def app-env-specific-filenames [(<< ".env.~{app-env}")])
 
-(def app-env-specific-env
+(defn app-env-specific-env
+  []
   (into {} (map load-env-file app-env-specific-filenames)))
 
-(def extended-env
-  (into {} [base-env app-env-specific-env]))
+(defn extended-env
+  []
+  (into {} [(base-env) (app-env-specific-env)]))
 
 (defn env
-  ([] extended-env)
-  ([k] (extended-env (name k))))
+  ([] (extended-env))
+  ([k] ((extended-env) (name k))))
